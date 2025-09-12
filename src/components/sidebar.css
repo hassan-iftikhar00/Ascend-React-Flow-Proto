@@ -1,0 +1,108 @@
+:root {
+  --sidebar-width: 220px;
+  --teal: #0fb1b3; /* teal-ish from screenshot */
+  --teal-dark: #0a8b8d;
+}
+
+.rf-sidebar {
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--teal) 0%, var(--teal-dark) 100%);
+  color: #fff;
+  height: 100vh;
+  padding: 18px 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-right: 2px solid rgba(0, 0, 0, 0.08);
+  overflow: auto;
+}
+
+.rf-sidebar-header {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.rf-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.rf-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.rf-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rf-icon {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  opacity: 0.98;
+}
+
+.rf-label {
+  font-size: 15px;
+}
+
+/* grouping: add extra top margin where the new items begin */
+.rf-sidebar-item[data-group="extra"] {
+  margin-top: 8px;
+}
+
+/* custom scrollbar similar thin look */
+.rf-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.rf-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+/* settings panel styles */
+.rf-settings {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rf-settings-title {
+  font-size: 14px;
+  margin: 0;
+}
+.rf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rf-field-label {
+  font-size: 13px;
+}
+.rf-textarea {
+  min-height: 70px;
+  resize: vertical;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: #fff;
+  color: #000;
+}
+.rf-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
