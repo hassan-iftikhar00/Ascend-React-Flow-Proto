@@ -23,7 +23,7 @@ export default function RightSidebar({
   return (
     <aside className="rf-rightsidebar">
       <div className="rf-right-header">
-        <div>{selectedNode.data?.label || "Properties"}</div>
+        <div>{selectedNode.data?.type || "Properties"}</div>
         <button onClick={onClose}>Close</button>
       </div>
 
@@ -40,24 +40,14 @@ export default function RightSidebar({
 
           <div className="rf-field">
             <div className="rf-field-label">BR</div>
-            <label className="rf-radio">
-              <input
-                type="radio"
-                name="br"
-                checked={br === true}
-                onChange={() => setBr(true)}
-              />{" "}
-              True
-            </label>
-            <label className="rf-radio">
-              <input
-                type="radio"
-                name="br"
-                checked={br === false}
-                onChange={() => setBr(false)}
-              />{" "}
-              False
-            </label>
+            <select
+              value={br ? "true" : "false"}
+              onChange={(e) => setBr(e.target.value === "true")}
+              className="rf-select"
+            >
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
           </div>
 
           <div>
