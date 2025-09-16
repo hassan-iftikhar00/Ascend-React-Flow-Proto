@@ -10,20 +10,17 @@ import {
 import "@xyflow/react/dist/style.css";
 import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
-import CustomNode from "./components/CustomNode";
-import MenuNode from "./components/menunode";
+import { RotateCcw, RotateCw, Trash2 } from "lucide-react";
 
 const initialNodes = [
   {
     id: "play-1",
     position: { x: 50, y: 50 },
-    type: "custom",
     data: { label: "Play 1", type: "play", prompt: "Hello", br: false },
   },
   {
     id: "play-2",
     position: { x: 50, y: 200 },
-    type: "custom",
     data: { label: "Play 2", type: "play", prompt: "Welcome", br: true },
   },
 ];
@@ -36,6 +33,8 @@ export default function App() {
   const [edges, setEdges] = useState(initialEdges);
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
+  // refs to manage injected per-node delete buttons (we inject DOM into node elements)
+  const nodeDeleteButtonsRef = useRef(new Map());
 
   // Undo / Redo history stacks
   const undoStack = useRef([]);
@@ -87,11 +86,10 @@ export default function App() {
   );
 
   const addPlayNode = useCallback(() => {
-    const id = `play-${Date.now()}`;
+    const id = play-${Date.now()};
     const newNode = {
       id,
       position: { x: 100, y: 100 },
-      type: "custom",
       data: { label: "Play", type: "play", prompt: "", br: false },
     };
     setNodes((nds) => {
@@ -101,24 +99,7 @@ export default function App() {
       return nds.concat(newNode);
     });
     setSelectedNode(newNode);
-  }, [edges]);
-
-  const addMenuNode = useCallback(() => {
-    const id = `menu-${Date.now()}`;
-    const newNode = {
-      id,
-      position: { x: 150, y: 150 },
-      type: "menu",
-      data: { label: "Menu", promptText: "", type: "menu" },
-    };
-    setNodes((nds) => {
-      undoStack.current.push({ nodes: nds, edges });
-      if (undoStack.current.length > MAX_HISTORY) undoStack.current.shift();
-      redoStack.current = [];
-      return nds.concat(newNode);
-    });
-    setSelectedNode(newNode);
-  }, [edges]);
+  }, []);
 
   const updateNodeData = useCallback((id, data) => {
     setNodes((nds) => {
@@ -193,7 +174,7 @@ export default function App() {
     setSelectedEdge(null);
   }, [nodes, edges]);
 
-  // delete a node by id (used by per-node delete buttons)
+  // delete a node by id (used by floating per-node delete button)
   const handleDeleteNode = useCallback(
     (id) => {
       setNodes((nds) => {
@@ -203,15 +184,81 @@ export default function App() {
         return nds.filter((n) => n.id !== id);
       });
       setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-      // clear selection if it was the deleted node
       setSelectedNode((sn) => (sn && sn.id === id ? null : sn));
     },
     [edges]
   );
 
+  const onNodeMouseEnter = useCallback((event, node) => {
+    const nodeEl = event.currentTarget;
+    // don't inject twice
+    if (nodeDeleteButtonsRef.current.has(node.id)) return;
+
+    // create button element
+    const btn = document.createElement("button");
+    btn.setAttribute("title", "Delete");
+    btn.setAttribute("aria-label", "Delete node");
+    btn.style.position = "absolute";
+  // slightly smaller and flush to top-right inside the node
+  btn.style.top = "4px";
+  btn.style.right = "4px";
+    btn.style.zIndex = "10";
+    btn.style.background = "#e53935"; // red background
+    btn.style.border = "none";
+    btn.style.padding = "0";
+    btn.style.cursor = "pointer";
+    btn.style.color = "#ffffff"; // icon color
+    btn.style.display = "inline-flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+  btn.style.width = "14px";
+  btn.style.height = "14px";
+  btn.style.borderRadius = "50%";
+
+    // filled white trash svg on red background
+    btn.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M9 3h6l1 2h4v2H4V5h4l1-2z" fill="white"/>
+        <path d="M6 7h12l-1 12.5A2.5 2.5 0 0 1 14.5 22h-5A2.5 2.5 0 0 1 7 19.5L6 7z" fill="white"/>
+        <path d="M10 11v6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 11v6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+
+    const onClick = (e) => {
+      e.stopPropagation();
+      handleDeleteNode(node.id);
+    };
+    btn.addEventListener("click", onClick);
+
+    // keep reference for cleanup
+    nodeDeleteButtonsRef.current.set(node.id, { btn, onClick });
+
+    // ensure the node element is positioned so the absolute button sits relative to it
+    // React Flow node elements are usually positioned (absolute), so this will place the button inside
+    nodeEl.style.position = nodeEl.style.position || "absolute";
+    nodeEl.appendChild(btn);
+  }, [handleDeleteNode]);
+
+  const onNodeMouseLeave = useCallback((event, node) => {
+    const entry = nodeDeleteButtonsRef.current.get(node.id);
+    if (!entry) return;
+    const { btn, onClick } = entry;
+    try {
+      btn.removeEventListener("click", onClick);
+      if (btn.parentNode) btn.parentNode.removeChild(btn);
+    } catch (err) {
+      // ignore
+    }
+    nodeDeleteButtonsRef.current.delete(node.id);
+  }, []);
+
+  // delete a node by id (used by per-node delete buttons)
+  // (no per-node delete handler — using default selection delete)
+
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
-      <Sidebar onAddPlay={addPlayNode} onAddMenu={addMenuNode} />
+      <Sidebar onAddPlay={addPlayNode} />
       <div style={{ flex: 1, height: "100vh" }}>
         <div style={{ position: "relative", width: "100%", height: "100%" }}>
           <div
@@ -238,21 +285,7 @@ export default function App() {
                 justifyContent: "center",
               }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ color: "#0fb1b3" }}
-              >
-                <polyline points="15 3 9 9 15 15" />
-                <path d="M21 10v6a2 2 0 0 1-2 2H8" />
-              </svg>
+              <RotateCcw color="#0fb1b3" size={18} />
             </button>
             <button
               onClick={handleRedo}
@@ -268,41 +301,30 @@ export default function App() {
                 justifyContent: "center",
               }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ color: "#0fb1b3" }}
-              >
-                <polyline points="9 3 15 9 9 15" />
-                <path d="M3 10v6a2 2 0 0 0 2 2h11" />
-              </svg>
+              <RotateCw color="#0fb1b3" size={18} />
             </button>
             
           </div>
 
           <ReactFlow
-            nodes={nodes.map((n) => ({ ...n, data: { ...(n.data || {}), onDelete: handleDeleteNode } }))}
+            nodes={nodes}
             edges={edges}
             colorMode="light"
             onNodeClick={onNodeClick}
             onEdgeClick={onEdgeClick}
             onPaneClick={onPaneClick}
+            onNodeMouseEnter={onNodeMouseEnter}
+            onNodeMouseLeave={onNodeMouseLeave}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodeTypes={{ custom: CustomNode, menu: MenuNode }}
+            
             fitView
             style={{ width: "100%", height: "100%", background: "#ffffff" }}
           >
             <Controls />
           </ReactFlow>
+        
         </div>
       </div>
       <RightSidebar
