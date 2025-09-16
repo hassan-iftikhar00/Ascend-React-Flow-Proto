@@ -43,7 +43,7 @@ const items = [
   { key: "settings", label: "Settings", Icon: Settings },
 ];
 
-export default function Sidebar({ onAddPlay }) {
+export default function Sidebar({ onAddPlay, onAddMenu }) {
   return (
     <aside className="rf-sidebar">
       <div className="rf-sidebar-header">Controls</div>
@@ -52,7 +52,10 @@ export default function Sidebar({ onAddPlay }) {
           <div
             className="rf-sidebar-item"
             key={it.key}
-            onClick={() => it.key === "play" && onAddPlay && onAddPlay()}
+            onClick={() => {
+              if (it.key === "play" && onAddPlay) onAddPlay();
+              if (it.key === "menu" && onAddMenu) onAddMenu();
+            }}
           >
             <it.Icon className="rf-icon" />
             <span className="rf-label">{it.label}</span>

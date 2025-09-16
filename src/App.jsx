@@ -86,7 +86,7 @@ export default function App() {
   );
 
   const addPlayNode = useCallback(() => {
-    const id = `play-${Date.now()}`;
+    const id = play-${Date.now()};
     const newNode = {
       id,
       position: { x: 100, y: 100 },
@@ -324,7 +324,7 @@ export default function App() {
           >
             <Controls />
           </ReactFlow>
-          {/* in-node delete buttons are injected into node DOM on hover via onNodeMouseEnter/onNodeMouseLeave */}
+        
         </div>
       </div>
       <RightSidebar

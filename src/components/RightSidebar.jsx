@@ -9,16 +9,19 @@ export default function RightSidebar({
   // local state is always initialized (hooks must run unconditionally)
   const [prompt, setPrompt] = useState("");
   const [br, setBr] = useState(false);
+  const [promptText, setPromptText] = useState("");
 
   useEffect(() => {
     if (!selectedNode) return;
     setPrompt(selectedNode.data?.prompt || "");
     setBr(!!selectedNode.data?.br);
+  setPromptText(selectedNode.data?.promptText || "");
   }, [selectedNode]);
 
   if (!selectedNode) return null;
 
   const isPlay = selectedNode.data?.type === "play";
+  const isMenu = selectedNode.data?.type === "menu";
 
   return (
     <aside className="rf-rightsidebar">
@@ -60,6 +63,34 @@ export default function RightSidebar({
                   prompt,
                   br,
                   label: prompt,
+                });
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isMenu && (
+        <div className="rf-right-content">
+          <label className="rf-field">
+            <div className="rf-field-label">Prompt Text</div>
+            <input
+              className="rf-textarea"
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+            />
+          </label>
+
+          <div>
+            <button
+              className="rf-save"
+              onClick={() => {
+                updateNodeData(selectedNode.id, {
+                  ...selectedNode.data,
+                  promptText,
+                  label: promptText || selectedNode.data.label,
                 });
               }}
             >
