@@ -11,6 +11,7 @@ import "@xyflow/react/dist/style.css";
 import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
 import CustomNode from "./components/CustomNode";
+import MenuNode from "./components/menunode";
 
 const initialNodes = [
   {
@@ -100,7 +101,24 @@ export default function App() {
       return nds.concat(newNode);
     });
     setSelectedNode(newNode);
-  }, []);
+  }, [edges]);
+
+  const addMenuNode = useCallback(() => {
+    const id = `menu-${Date.now()}`;
+    const newNode = {
+      id,
+      position: { x: 150, y: 150 },
+      type: "menu",
+      data: { label: "Menu", promptText: "", type: "menu" },
+    };
+    setNodes((nds) => {
+      undoStack.current.push({ nodes: nds, edges });
+      if (undoStack.current.length > MAX_HISTORY) undoStack.current.shift();
+      redoStack.current = [];
+      return nds.concat(newNode);
+    });
+    setSelectedNode(newNode);
+  }, [edges]);
 
   const updateNodeData = useCallback((id, data) => {
     setNodes((nds) => {
@@ -193,7 +211,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
-      <Sidebar onAddPlay={addPlayNode} />
+      <Sidebar onAddPlay={addPlayNode} onAddMenu={addMenuNode} />
       <div style={{ flex: 1, height: "100vh" }}>
         <div style={{ position: "relative", width: "100%", height: "100%" }}>
           <div
@@ -279,7 +297,7 @@ export default function App() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodeTypes={{ custom: CustomNode }}
+            nodeTypes={{ custom: CustomNode, menu: MenuNode }}
             fitView
             style={{ width: "100%", height: "100%", background: "#ffffff" }}
           >
