@@ -1,5 +1,5 @@
 .rf-rightsidebar {
-  width: 300px;
+  width: 500px;
   background: #ffffff;
   color: #111;
   height: 100vh;
@@ -64,4 +64,24 @@
 .rf-select option {
   background: #fff; /* options background in dropdown */
   color: #111;
+}
+
+/* Panels for Invalid / No Response sections */
+.rf-panel {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px 12px 12px;
+  background: #fff;
+}
+.rf-panel-header {
+  background: #00a1ad; /* teal header */
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px 6px 0 0;
+  font-weight: 600;
+  margin: -8px -12px 8px -12px; /* pull header to panel edges */
+}
+.rf-panel label {
+  display: block;
+  margin-top: 8px;
 }

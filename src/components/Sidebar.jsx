@@ -53,6 +53,7 @@ export default function Sidebar({ onAddPlay, onAddMenu }) {
             className="rf-sidebar-item"
             key={it.key}
             onClick={() => {
+              console.log("Sidebar item clicked:", it.key);
               if (it.key === "play" && onAddPlay) onAddPlay();
               if (it.key === "menu" && onAddMenu) onAddMenu();
             }}

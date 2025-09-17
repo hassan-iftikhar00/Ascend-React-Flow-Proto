@@ -10,6 +10,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
+import MenuNode from "./components/menunode";
 import { RotateCcw, RotateCw, Trash2 } from "lucide-react";
 
 const initialNodes = [
@@ -86,11 +87,28 @@ export default function App() {
   );
 
   const addPlayNode = useCallback(() => {
-    const id = play-${Date.now()};
+    const id = `play-${Date.now()}`;
     const newNode = {
       id,
       position: { x: 100, y: 100 },
       data: { label: "Play", type: "play", prompt: "", br: false },
+    };
+    setNodes((nds) => {
+      undoStack.current.push({ nodes: nds, edges });
+      if (undoStack.current.length > MAX_HISTORY) undoStack.current.shift();
+      redoStack.current = [];
+      return nds.concat(newNode);
+    });
+    setSelectedNode(newNode);
+  }, []);
+
+  const addMenuNode = useCallback(() => {
+    console.log("addMenuNode called");
+    const id = `menu-${Date.now()}`;
+    const newNode = {
+      id,
+      position: { x: 150, y: 150 },
+      data: { label: "Menu", type: "menu", promptText: "" },
     };
     setNodes((nds) => {
       undoStack.current.push({ nodes: nds, edges });
@@ -137,7 +155,11 @@ export default function App() {
         return nds.filter((n) => n.id !== selectedNode.id);
       });
       // also remove any edges connected to the deleted node
-      setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id));
+      setEdges((eds) =>
+        eds.filter(
+          (e) => e.source !== selectedNode.id && e.target !== selectedNode.id
+        )
+      );
       setSelectedNode(null);
       return;
     }
@@ -189,56 +211,60 @@ export default function App() {
     [edges]
   );
 
-  const onNodeMouseEnter = useCallback((event, node) => {
-    const nodeEl = event.currentTarget;
-    // don't inject twice
-    if (nodeDeleteButtonsRef.current.has(node.id)) return;
+  const onNodeMouseEnter = useCallback(
+    (event, node) => {
+      const nodeEl = event.currentTarget;
+      // don't inject twice
+      if (nodeDeleteButtonsRef.current.has(node.id)) return;
 
-    // create button element
-    const btn = document.createElement("button");
-    btn.setAttribute("title", "Delete");
-    btn.setAttribute("aria-label", "Delete node");
-    btn.style.position = "absolute";
-  // slightly smaller and flush to top-right inside the node
-  btn.style.top = "4px";
-  btn.style.right = "4px";
-    btn.style.zIndex = "10";
-    btn.style.background = "#e53935"; // red background
-    btn.style.border = "none";
-    btn.style.padding = "0";
-    btn.style.cursor = "pointer";
-    btn.style.color = "#ffffff"; // icon color
-    btn.style.display = "inline-flex";
-    btn.style.alignItems = "center";
-    btn.style.justifyContent = "center";
-  btn.style.width = "14px";
-  btn.style.height = "14px";
-  btn.style.borderRadius = "50%";
+      // create button element
+      const btn = document.createElement("button");
+      btn.setAttribute("title", "Delete");
+      btn.setAttribute("aria-label", "Delete node");
+      btn.style.position = "absolute";
+      btn.style.top = "4px";
+      btn.style.right = "4px";
+      btn.style.zIndex = "10";
+      btn.style.background = "#e53935";
+      btn.style.border = "none";
+      btn.style.padding = "0px";
+      btn.style.cursor = "pointer";
+      btn.style.paddingLeftLeft = "4px";
+      btn.style.color = "#ffffff";
+      btn.style.display = "inline-flex";
+      btn.style.alignItems = "center";
+      btn.style.justifyContent = "center";
+      btn.style.width = "14px";
+      btn.style.height = "14px";
+      btn.style.borderRadius = "50%";
+      // Add these two lines to fix centering:
+      btn.style.transform = "translate(0, 0)";
+      btn.style.overflow = "hidden";
 
-    // filled white trash svg on red background
-    btn.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M9 3h6l1 2h4v2H4V5h4l1-2z" fill="white"/>
-        <path d="M6 7h12l-1 12.5A2.5 2.5 0 0 1 14.5 22h-5A2.5 2.5 0 0 1 7 19.5L6 7z" fill="white"/>
-        <path d="M10 11v6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M14 11v6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
+      // Better yet, use a centered SVG approach:
+      btn.innerHTML = `
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display: block; margin: auto;">
+    <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M10 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+`;
 
-    const onClick = (e) => {
-      e.stopPropagation();
-      handleDeleteNode(node.id);
-    };
-    btn.addEventListener("click", onClick);
+      const onClick = (e) => {
+        e.stopPropagation();
+        handleDeleteNode(node.id);
+      };
+      btn.addEventListener("click", onClick);
 
-    // keep reference for cleanup
-    nodeDeleteButtonsRef.current.set(node.id, { btn, onClick });
+      nodeDeleteButtonsRef.current.set(node.id, { btn, onClick });
 
-    // ensure the node element is positioned so the absolute button sits relative to it
-    // React Flow node elements are usually positioned (absolute), so this will place the button inside
-    nodeEl.style.position = nodeEl.style.position || "absolute";
-    nodeEl.appendChild(btn);
-  }, [handleDeleteNode]);
+      nodeEl.style.position = nodeEl.style.position || "absolute";
+      nodeEl.appendChild(btn);
+    },
+    [handleDeleteNode]
+  );
 
   const onNodeMouseLeave = useCallback((event, node) => {
     const entry = nodeDeleteButtonsRef.current.get(node.id);
@@ -247,18 +273,15 @@ export default function App() {
     try {
       btn.removeEventListener("click", onClick);
       if (btn.parentNode) btn.parentNode.removeChild(btn);
-    } catch (err) {
+    } catch {
       // ignore
     }
     nodeDeleteButtonsRef.current.delete(node.id);
   }, []);
 
-  // delete a node by id (used by per-node delete buttons)
-  // (no per-node delete handler — using default selection delete)
-
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
-      <Sidebar onAddPlay={addPlayNode} />
+      <Sidebar onAddPlay={addPlayNode} onAddMenu={addMenuNode} />
       <div style={{ flex: 1, height: "100vh" }}>
         <div style={{ position: "relative", width: "100%", height: "100%" }}>
           <div
@@ -303,7 +326,6 @@ export default function App() {
             >
               <RotateCw color="#0fb1b3" size={18} />
             </button>
-            
           </div>
 
           <ReactFlow
@@ -318,13 +340,12 @@ export default function App() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            
+            nodeTypes={{ menu: MenuNode }}
             fitView
             style={{ width: "100%", height: "100%", background: "#ffffff" }}
           >
             <Controls />
           </ReactFlow>
-        
         </div>
       </div>
       <RightSidebar

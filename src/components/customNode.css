@@ -1,0 +1,33 @@
+/* Ensure the custom node is the positioning context for the delete button */
+.custom-node {
+  position: relative;
+}
+
+/* Floating circular delete button inside the node */
+.node-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #e53935; /* red */
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.node-delete svg {
+  width: 12px;
+  height: 12px;
+  display: block; /* prevents vertical-alignment shift */
+}
+
+.node-delete:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.2);
+}
